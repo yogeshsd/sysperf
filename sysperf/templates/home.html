@@ -1,0 +1,178 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+      google.charts.load('current', {packages: ['corechart', 'line']});
+    </script>
+    <script>
+      var app = angular.module('perf', []);
+      app.controller('cpu', function($scope, $http) {
+        $scope.cpu=[["Time","Utilization"]]
+        $scope.mem=[["Time","Utilization"]]
+        $scope.swap=[["Time","Utilization"]]
+        $scope.network=[["Time","Sent","Received"]]
+        $scope.disk=[["Time","Read","Write"]]
+        $scope.interval=2
+
+        setInterval(function() {
+          $http.get("/cpu").then(
+            function (response) {
+              $scope.cpu.push(response.data);
+              var data = google.visualization.arrayToDataTable($scope.cpu);
+              var chart = new google.visualization.LineChart(document.getElementById('cpu_line'));
+              var options = {
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                colors: ['blue']
+              };
+              chart.draw(data, options);
+          });
+        },$scope.interval*1000);
+
+        setInterval(function() {
+          $http.get("/mem").then(
+            function (response) {
+              $scope.mem.push(response.data);
+              var data = google.visualization.arrayToDataTable($scope.mem);
+              var chart = new google.visualization.LineChart(document.getElementById('mem_line'));
+              var options = {
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                colors: ['orange']
+              };
+              chart.draw(data, options);
+          });
+        },$scope.interval*1000);
+        setInterval(function() {
+          $http.get("/swap").then(
+            function (response) {
+              $scope.swap.push(response.data);
+              var data = google.visualization.arrayToDataTable($scope.swap);
+              var chart = new google.visualization.LineChart(document.getElementById('swap_line'));
+              var options = {
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                colors: ['green']
+              };
+              chart.draw(data, options);
+          });
+        },$scope.interval*1000);
+
+        setInterval(function() {
+          $http.get("/network").then(
+            function (response) {
+              $scope.network.push(response.data);
+              var data = google.visualization.arrayToDataTable($scope.network);
+              var chart = new google.visualization.LineChart(document.getElementById('network_line'));
+              var options = {
+                curveType: 'function',
+                legend: { position: 'bottom' }
+              };
+              chart.draw(data, options);
+          });
+        },$scope.interval*1000);
+        setInterval(function() {
+          $http.get("/disk").then(
+            function (response) {
+              $scope.disk.push(response.data);
+              var data = google.visualization.arrayToDataTable($scope.disk);
+              var chart = new google.visualization.LineChart(document.getElementById('disk_line'));
+              var options = {
+                curveType: 'function',
+                legend: { position: 'bottom' }
+              };
+              chart.draw(data, options);
+          });
+        },$scope.interval*1000);
+
+        $scope.getSysInfo = function (){
+          $http.get("/sysinfo").then(
+            function (response) {
+              $scope.sysinfo=response.data;
+            }
+          );
+        }
+      });
+
+     app.config(['$interpolateProvider', function($interpolateProvider) {
+        $interpolateProvider.startSymbol('[[');
+        $interpolateProvider.endSymbol(']]');
+     }]);
+    </script>
+    <style>
+      table,tr,td,th {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 5px;
+      }
+      .cover_chart{
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 5px;
+        height:300px;
+      }
+      .row{
+        padding:5px;
+      }
+      .cover_title{
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 1px;
+        height:30px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body ng-app="perf" ng-controller="cpu">
+    <div class="container-fluid mt-3">
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="cover_title bg-dark text-white">System Information</div>
+          <div class="cover_chart">
+            <table class="table table-striped" ng-init="getSysInfo()">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="x in sysinfo" >
+                  <td>[[ x[0] ]]</td>
+                  <td>[[ x[1] ]]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="cover_title bg-dark text-white">CPU Utilization</div>
+          <div class="cover_chart" id="cpu_line"></div>
+        </div>
+        <div class="col-sm-4">
+          <div class="cover_title bg-dark text-white">Memory Utilization</div>
+          <div class="cover_chart" id="mem_line"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="cover_title bg-dark text-white">Network Counter</div>
+          <div class="cover_chart" id="network_line"></div>
+        </div>
+        <div class="col-sm-4">
+          <div class="cover_title bg-dark text-white">Swap Utilization</div>
+          <div class="cover_chart" id="swap_line"></div>
+        </div>
+        <div class="col-sm-4">
+          <div class="cover_title bg-dark text-white">Disk Information</div>
+          <div class="cover_chart" id="disk_line"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
