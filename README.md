@@ -8,7 +8,7 @@ pip install sysperf
 python -m sysperf.perf
 
 # Accessing the dashboard
-http://localhost:400
+http://localhost:4000
 
 # Dashboard Sample
 ![Dashboard](samples/sample_report.png)
