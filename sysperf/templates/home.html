@@ -7,7 +7,7 @@
     <script src="static/js/angular.min.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script>
-      google.charts.load('current', {packages: ['corechart', 'line']});
+      google.charts.load('current', {packages: ['corechart', 'line', 'gauge']});
     </script>
     <script>
       var app = angular.module('perf', []);
@@ -17,7 +17,7 @@
         $scope.swap=[["Time","Utilization"]]
         $scope.network=[["Time","Sent","Received"]]
         $scope.disk=[["Time","Read","Write"]]
-        $scope.interval=2
+        $scope.interval=15
 
         setInterval(function() {
           $http.get("/cpu").then(
@@ -48,6 +48,41 @@
               chart.draw(data, options);
           });
         },$scope.interval*1000);
+
+        setInterval(function() {
+          $http.get("/cpu").then(
+            function (response) {
+              var data = google.visualization.arrayToDataTable([
+                ['Label', 'Value'],
+                ['CPU', response.data[1]]
+              ]);
+              var chart = new google.visualization.Gauge(document.getElementById('cpu_gauge'));
+              var options = {
+                redFrom: 90, redTo: 100,
+                yellowFrom:75, yellowTo: 90,
+                minorTicks: 5
+              };
+              chart.draw(data, options);
+          });
+        },$scope.interval*1000);
+
+        setInterval(function() {
+          $http.get("/mem").then(
+            function (response) {
+              var data = google.visualization.arrayToDataTable([
+                ['Label', 'Value'],
+                ['Memory', response.data[1]]
+              ]);
+              var chart = new google.visualization.Gauge(document.getElementById('disk_gauge'));
+              var options = {
+                redFrom: 90, redTo: 100,
+                yellowFrom:75, yellowTo: 90,
+                minorTicks: 5
+              };
+              chart.draw(data, options);
+          });
+        },$scope.interval*1000);
+
         setInterval(function() {
           $http.get("/swap").then(
             function (response) {
@@ -76,6 +111,7 @@
               chart.draw(data, options);
           });
         },$scope.interval*1000);
+
         setInterval(function() {
           $http.get("/disk").then(
             function (response) {
@@ -106,22 +142,37 @@
     </script>
     <style>
       body{
-        background-color:lightgrey;
+        #background-color:lightgrey;
       }
       table,tr,td,th {
         border: 1px solid black;
         border-collapse: collapse;
-        padding: 5px;
+        padding: 2px !important;
       }
       .cover_chart{
-        background-color: white;
+        border: 1px solid black;
         border-collapse: collapse;
         padding: 5px;
-        height:300px;
+        height:250px;
       }
       .row{
         padding:5px;
       }
+      .span1 {
+         width:30%;
+         float:left;
+         padding-top:20px;
+         border:0px;
+         border-left:1px solid black;
+         border-bottom:1px solid black;
+       }
+      .span2 {
+         width:70%;
+         float:right;
+         border:0px;
+         border-right:1px solid black;
+         border-bottom:1px solid black;
+       }
       .cover_title{
         border: 1px solid black;
         border-collapse: collapse;
@@ -132,10 +183,26 @@
     </style>
   </head>
   <body ng-app="perf" ng-controller="cpu">
-    <p>System Performance</p>
     <div class="container-fluid mt-3">
       <div class="row">
-        <div class="col-sm-4">
+        <div class="col-sm-12">
+          <p><a target="_blank" href="https://github.com/yogeshsd/sysperf">sysperf</a> : Opensource real time system performance monitoring and reporting software. The software is written in python and uses psutil to query system resource. The software uses angularjs, bootstrap and google charts for data visualization.</p>
+        </div>
+      </div>
+      <div class="row">
+       <div class="col-sm-6">
+          <div class="cover_title bg-dark text-white">CPU Utilization</div>
+          <div class="cover_chart span1" id="cpu_gauge"></div>
+          <div class="cover_chart span2" id="cpu_line"></div>
+        </div>
+        <div class="col-sm-6">
+          <div class="cover_title bg-dark text-white">Memory Utilization</div>
+          <div class="cover_chart span1" id="disk_gauge"></div>
+          <div class="cover_chart span2" id="mem_line"></div>
+        </div>
+      </div>
+      <div class="row">
+       <div class="col-sm-3">
           <div class="cover_title bg-dark text-white">System Information</div>
           <div class="cover_chart">
             <table class="table table-striped" ng-init="getSysInfo()">
@@ -154,29 +221,22 @@
             </table>
           </div>
         </div>
-        <div class="col-sm-4">
-          <div class="cover_title bg-dark text-white">CPU Utilization</div>
-          <div class="cover_chart" id="cpu_line"></div>
-        </div>
-        <div class="col-sm-4">
-          <div class="cover_title bg-dark text-white">Memory Utilization</div>
-          <div class="cover_chart" id="mem_line"></div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-sm-4">
+        <div class="col-sm-3">
           <div class="cover_title bg-dark text-white">Network Counter</div>
           <div class="cover_chart" id="network_line"></div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-3">
           <div class="cover_title bg-dark text-white">Swap Utilization</div>
           <div class="cover_chart" id="swap_line"></div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-3">
           <div class="cover_title bg-dark text-white">Disk Information</div>
           <div class="cover_chart" id="disk_line"></div>
         </div>
       </div>
     </div>
   </body>
+<footer style="float:right;padding-right:20px">
+  Rate on <a target="_blank" href="https://github.com/yogeshsd/sysperf"><img src="static/images/github.svg" alt="sysperf" width="18" height="18"></a>
+</footer>
 </html>
