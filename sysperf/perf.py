@@ -1,14 +1,21 @@
 import json
 import time
 import psutil
+import argparse
+
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
-
+refresh = 15
 
 @app.route('/')
 def getHomePage():
     return render_template('home.html')
+
+
+@app.route('/refresh', methods=['GET'])
+def getRefresh():
+    return refresh
 
 
 @app.route('/sysinfo', methods=['GET'])
@@ -68,4 +75,15 @@ def getDisk():
 
 
 if __name__ == '__main__':
-    app.run(port=4000, debug=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", help="Port number to run the application")
+    parser.add_argument("--refresh", help="Refresh interval in seconds")
+    args = parser.parse_args()
+    print(args)
+    port = args.port
+    refresh = args.refresh
+    if not port:
+        port = 4000
+    if not refresh:
+        refresh = 15
+    app.run(port=port, debug=True)

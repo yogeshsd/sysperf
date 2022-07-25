@@ -17,7 +17,7 @@
         $scope.swap=[["Time","Utilization"]]
         $scope.network=[["Time","Sent","Received"]]
         $scope.disk=[["Time","Read","Write"]]
-        $scope.interval=15
+        $scope.interval=5
 
         setInterval(function() {
           $http.get("/cpu").then(
